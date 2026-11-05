@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Presupuesto y Gastos Diarios</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="text-center">
+                <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    💰 Gestor de Presupuesto y Gastos Diarios
+                </h1>
+                <p class="mt-2 text-slate-600 text-sm sm:text-base">
+                    Controla tus finanzas de forma local, simple y efectiva
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Summary Cards -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <span>📊</span> Resumen Financiero
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                <!-- Ingresos Totales -->
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover border-l-4 border-green-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 uppercase tracking-wide">Ingresos Totales</p>
+                            <p id="totalIncome" class="text-2xl sm:text-3xl font-bold text-green-600 mt-2">$0.00</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gastos Totales -->
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover border-l-4 border-red-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 uppercase tracking-wide">Gastos Totales</p>
+                            <p id="totalExpense" class="text-2xl sm:text-3xl font-bold text-red-600 mt-2">$0.00</p>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balance Restante -->
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover border-l-4 border-blue-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 uppercase tracking-wide">Balance Restante</p>
+                            <p id="totalBalance" class="text-2xl sm:text-3xl font-bold text-blue-600 mt-2">$0.00</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <!-- Left Column: Form and Transactions -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Add Transaction Form -->
+                <section class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+                        <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                            <span>➕</span> Agregar Nueva Transacción
+                        </h2>
+                    </div>
+                    <form id="transactionForm" class="p-6 space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Título -->
+                            <div class="sm:col-span-2">
+                                <label for="title" class="block text-sm font-medium text-slate-700 mb-2">
+                                    Título *
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="title" 
+                                    name="title"
+                                    required
+                                    placeholder="Ej: Compra en supermercado"
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >
+                            </div>
+
+                            <!-- Monto -->
+                            <div>
+                                <label for="amount" class="block text-sm font-medium text-slate-700 mb-2">
+                                    Monto *
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2 text-slate-500">$</span>
+                                    <input 
+                                        type="number" 
+                                        id="amount" 
+                                        name="amount"
+                                        step="0.01"
+                                        min="0.01"
+                                        required
+                                        placeholder="0.00"
+                                        class="w-full pl-8 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    >
+                                </div>
+                            </div>
+
+                            <!-- Tipo -->
+                            <div>
+                                <label for="type" class="block text-sm font-medium text-slate-700 mb-2">
+                                    Tipo *
+                                </label>
+                                <select 
+                                    id="type" 
+                                    name="type"
+                                    required
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >
+                                    <option value="">Seleccionar...</option>
+                                    <option value="income">💚 Ingreso</option>
+                                    <option value="expense">❤️ Gasto</option>
+                                </select>
+                            </div>
+
+                            <!-- Categoría -->
+                            <div>
+                                <label for="category" class="block text-sm font-medium text-slate-700 mb-2">
+                                    Categoría *
+                                </label>
+                                <select 
+                                    id="category" 
+                                    name="category"
+                                    required
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Comida">🍔 Comida</option>
+                                    <option value="Transporte">🚗 Transporte</option>
+                                    <option value="Ocio">🎮 Ocio</option>
+                                    <option value="Salud">🏥 Salud</option>
+                                    <option value="Vivienda">🏠 Vivienda</option>
+                                    <option value="Servicios">⚡ Servicios</option>
+                                    <option value="Educación">📚 Educación</option>
+                                    <option value="Ropa">👕 Ropa</option>
+                                    <option value="Otros">📦 Otros</option>
+                                </select>
+                            </div>
+
+                            <!-- Fecha -->
+                            <div>
+                                <label for="date" class="block text-sm font-medium text-slate-700 mb-2">
+                                    Fecha *
+                                </label>
+                                <input 
+                                    type="date" 
+                                    id="date" 
+                                    name="date"
+                                    required
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >
+                            </div>
+                        </div>
+
+                        <button 
+                            type="submit"
+                            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Agregar Transacción
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Transactions List -->
+                <section class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-slate-700 to-slate-800 px-6 py-4">
+                        <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                            <span>📝</span> Movimientos Recientes
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <!-- Desktop Table -->
+                        <div class="hidden md:block table-container">
+                            <table class="w-full">
+                                <thead class="bg-slate-50 sticky top-0">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Fecha</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Título</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Categoría</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Tipo</th>
+                                        <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Monto</th>
+                                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionsTableBody" class="divide-y divide-slate-200">
+                                    <!-- Transactions will be added dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Mobile Cards -->
+                        <div id="transactionsMobileList" class="md:hidden space-y-3">
+                            <!-- Mobile cards will be added dynamically -->
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div id="emptyState" class="text-center py-12">
+                            <div class="text-6xl mb-4">📭</div>
+                            <p class="text-slate-500 text-lg font-medium">No hay transacciones aún</p>
+                            <p class="text-slate-400 text-sm mt-1">Agrega tu primera transacción usando el formulario</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Chart -->
+            <div class="lg:col-span-1">
+                <section class="bg-white rounded-xl shadow-lg overflow-hidden sticky top-8">
+                    <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
+                        <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                            <span>🍩</span> Gastos por Categoría
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <canvas id="categoryChart" class="max-h-80"></canvas>
+                        <div id="chartEmptyState" class="text-center py-8">
+                            <div class="text-4xl mb-3">📊</div>
+                            <p class="text-slate-500 text-sm font-medium">Sin gastos registrados</p>
+                            <p class="text-slate-400 text-xs mt-1">Agrega gastos para ver el gráfico</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <p class="text-center text-slate-500 text-sm">
+                💡 Datos guardados localmente en tu navegador • Sin conexión a servidores
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Storage key
+        const STORAGE_KEY = 'pregastos_transactions_v1';
+        
+        // Chart instance
+        let categoryChart = null;
+        
+        // Categories with colors for chart
+        const categoryColors = {
+            'Comida': '#f59e0b',
+            'Transporte': '#3b82f6',
+            'Ocio': '#ec4899',
+            'Salud': '#10b981',
+            'Vivienda': '#8b5cf6',
+            'Servicios': '#f97316',
+            'Educación': '#06b6d4',
+            'Ropa': '#84cc16',
+            'Otros': '#64748b'
+        };
+        
+        // Load transactions from localStorage
+        function loadTransactions() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (error) {
+                console.error('Error al cargar transacciones:', error);
+                return [];
+            }
+        }
+        
+        // Save transactions to localStorage
+        function saveTransactions(transactions) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+            } catch (error) {
+                console.error('Error al guardar transacciones:', error);
+                alert('Error al guardar los datos. El almacenamiento local puede estar lleno.');
+            }
+        }
+        
+        // Get today's date in YYYY-MM-DD format
+        function getTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-ES', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+        
+        // Format date for display
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            const date = new Date(dateString + 'T00:00:00');
+            return date.toLocaleDateString('es-ES', options);
+        }
+        
+        // Calculate and render metrics
+        function renderMetrics(transactions) {
+            const totalIncome = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+            
+            const totalExpense = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+            
+            const totalBalance = totalIncome - totalExpense;
+            
+            document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+            document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
+            
+            const balanceElement = document.getElementById('totalBalance');
+            balanceElement.textContent = formatCurrency(totalBalance);
+            
+            // Change color based on balance
+            if (totalBalance >= 0) {
+                balanceElement.classList.remove('text-red-600');
+                balanceElement.classList.add('text-blue-600');
+            } else {
+                balanceElement.classList.remove('text-blue-600');
+                balanceElement.classList.add('text-red-600');
+            }
+        }
+        
+        // Render transactions table and mobile list
+        function renderTransactions(transactions) {
+            const tableBody = document.getElementById('transactionsTableBody');
+            const mobileList = document.getElementById('transactionsMobileList');
+            const emptyState = document.getElementById('emptyState');
+            
+            // Sort by date descending (most recent first)
+            const sortedTransactions = [...transactions].sort((a, b) => {
+                return new Date(b.date) - new Date(a.date);
+            });
+            
+            // Clear existing content
+            tableBody.innerHTML = '';
+            mobileList.innerHTML = '';
+            
+            if (sortedTransactions.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            sortedTransactions.forEach(transaction => {
+                const amount = parseFloat(transaction.amount);
+                const isIncome = transaction.type === 'income';
+                
+                // Desktop table row
+                const tableRow = document.createElement('tr');
+                tableRow.className = 'hover:bg-slate-50 transition-colors fade-in';
+                tableRow.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-slate-600">${formatDate(transaction.date)}</td>
+                    <td class="px-4 py-3">
+                        <div class="text-sm font-medium text-slate-900">${escapeHtml(transaction.title)}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                            ${escapeHtml(transaction.category)}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isIncome ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${isIncome ? '💚 Ingreso' : '❤️ Gasto'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm font-semibold text-right ${isIncome ? 'text-green-600' : 'text-red-600'}">
+                        ${isIncome ? '+' : '-'}${formatCurrency(amount)}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <button 
+                            onclick="deleteTransaction('${transaction.id}')"
+                            class="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                            title="Eliminar transacción"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tableRow);
+                
+                // Mobile card
+                const mobileCard = document.createElement('div');
+                mobileCard.className = 'border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow fade-in';
+                mobileCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex-1">
+                            <h3 class="font-medium text-slate-900">${escapeHtml(transaction.title)}</h3>
+                            <p class="text-xs text-slate-500 mt-1">${formatDate(transaction.date)}</p>
+                        </div>
+                        <button 
+                            onclick="deleteTransaction('${transaction.id}')"
+                            class="text-red-600 hover:text-red-800 p-1"
+                            title="Eliminar"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                                ${escapeHtml(transaction.category)}
+                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isIncome ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                ${isIncome ? '💚' : '❤️'}
+                            </span>
+                        </div>
+                        <span class="text-lg font-semibold ${isIncome ? 'text-green-600' : 'text-red-600'}">
+                            ${isIncome ? '+' : '-'}${formatCurrency(amount)}
+                        </span>
+                    </div>
+                `;
+                mobileList.appendChild(mobileCard);
+            });
+        }
+        
+        // Render category chart
+        function renderChart(transactions) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const chartEmptyState = document.getElementById('chartEmptyState');
+            
+            // Get expenses only
+            const expenses = transactions.filter(t => t.type === 'expense');
+            
+            if (expenses.length === 0) {
+                chartEmptyState.classList.remove('hidden');
+                if (categoryChart) {
+                    categoryChart.destroy();
+                    categoryChart = null;
+                }
+                ctx.canvas.style.display = 'none';
+                return;
+            }
+            
+            chartEmptyState.classList.add('hidden');
+            ctx.canvas.style.display = 'block';
+            
+            // Group by category
+            const categoryTotals = {};
+            expenses.forEach(expense => {
+                const cat = expense.category;
+                if (!categoryTotals[cat]) {
+                    categoryTotals[cat] = 0;
+                }
+                categoryTotals[cat] += parseFloat(expense.amount);
+            });
+            
+            const labels = Object.keys(categoryTotals);
+            const data = Object.values(categoryTotals);
+            const colors = labels.map(label => categoryColors[label] || '#64748b');
+            
+            // Destroy existing chart
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+            
+            // Create new chart
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${formatCurrency(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Add transaction
+        function addTransaction(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            const transaction = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                title: formData.get('title').trim(),
+                amount: parseFloat(formData.get('amount')),
+                type: formData.get('type'),
+                category: formData.get('category'),
+                date: formData.get('date'),
+                createdAt: new Date().toISOString()
+            };
+            
+            // Basic validation
+            if (!transaction.title) {
+                alert('Por favor ingresa un título');
+                return;
+            }
+            if (isNaN(transaction.amount) || transaction.amount <= 0) {
+                alert('Por favor ingresa un monto válido mayor a 0');
+                return;
+            }
+            if (!transaction.type) {
+                alert('Por favor selecciona el tipo de transacción');
+                return;
+            }
+            if (!transaction.category) {
+                alert('Por favor selecciona una categoría');
+                return;
+            }
+            if (!transaction.date) {
+                alert('Por favor selecciona una fecha');
+                return;
+            }
+            
+            // Load existing transactions
+            const transactions = loadTransactions();
+            transactions.push(transaction);
+            
+            // Save
+            saveTransactions(transactions);
+            
+            // Reset form
+            form.reset();
+            document.getElementById('date').value = getTodayDate();
+            
+            // Re-render everything
+            renderAll(transactions);
+            
+            // Show success feedback
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                ¡Agregado!
+            `;
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-75');
+            
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-75');
+            }, 1500);
+        }
+        
+        // Delete transaction
+        function deleteTransaction(id) {
+            if (!confirm('¿Estás seguro de que deseas eliminar esta transacción?')) {
+                return;
+            }
+            
+            const transactions = loadTransactions();
+            const filteredTransactions = transactions.filter(t => t.id !== id);
+            
+            saveTransactions(filteredTransactions);
+            renderAll(filteredTransactions);
+        }
+        
+        // Render all components
+        function renderAll(transactions) {
+            renderMetrics(transactions);
+            renderTransactions(transactions);
+            renderChart(transactions);
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Initialize app
+        function init() {
+            // Set today's date as default
+            document.getElementById('date').value = getTodayDate();
+            
+            // Load and render transactions
+            const transactions = loadTransactions();
+            renderAll(transactions);
+            
+            // Set up form submission
+            document.getElementById('transactionForm').addEventListener('submit', addTransaction);
+        }
+        
+        // Run init when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+
+</html>
