@@ -59,6 +59,9 @@ El resultado es una **single-page application** de un solo archivo que funciona 
 ```
 PreGastos/
 ├── index.html          # Aplicación completa: estructura, estilos y lógica
+├── favicon.svg         # Favicon vectorial (SVG) para la pestaña del navegador
+├── favicon.ico         # Favicon clásico multisize para compatibilidad
+├── favicon.png         # Icono en alta resolución / Apple touch icon
 ├── docs/
 │   └── preview.png     # Captura usada en este README
 ├── LICENSE             # Licencia MIT

@@ -4,41 +4,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Presupuesto y Gastos Diarios</title>
+    <title>PreGastos — Gestor de Presupuesto y Gastos Diarios</title>
     
+    <!-- Favicon Links for GitHub Pages & All Browsers -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <meta name="theme-color" content="#0f172a">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-feature-settings: "cv02", "cv03", "cv04", "cv11";
         }
         
-        .card-hover {
-            transition: all 0.3s ease;
+        .tabular-numbers {
+            font-variant-numeric: tabular-nums;
         }
-        
-        .card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+        .card-surface {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .card-surface:hover {
+            border-color: rgba(203, 213, 225, 0.9);
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+            transform: translateY(-1px);
         }
         
         .fade-in {
-            animation: fadeIn 0.3s ease-in;
+            animation: fadeIn 0.25s ease-out;
         }
         
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(6px);
             }
             to {
                 opacity: 1;
@@ -47,22 +81,21 @@
         }
         
         .table-container {
-            max-height: 400px;
+            max-height: 440px;
             overflow-y: auto;
         }
         
         .table-container::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         
         .table-container::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 10px;
+            background: #f8fafc;
         }
         
         .table-container::-webkit-scrollbar-thumb {
             background: #cbd5e1;
-            border-radius: 10px;
+            border-radius: 9999px;
         }
         
         .table-container::-webkit-scrollbar-thumb:hover {
@@ -71,110 +104,180 @@
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
-    <!-- Header -->
-    <header class="bg-white shadow-md border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="text-center">
-                <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    💰 Gestor de Presupuesto y Gastos Diarios
-                </h1>
-                <p class="mt-2 text-slate-600 text-sm sm:text-base">
-                    Controla tus finanzas de forma local, simple y efectiva
-                </p>
+<body class="bg-[#f8fafc] text-slate-900 min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white">
+    <!-- Ambient subtle background glow -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[850px] h-[450px] bg-gradient-to-b from-emerald-100/35 via-teal-50/20 to-transparent blur-3xl opacity-70"></div>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+            <div class="flex items-center justify-between">
+                <!-- Brand logo & title -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 border border-emerald-500/30 flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
+                        <!-- Favicon Brand SVG Mark -->
+                        <svg class="w-6 h-6" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="navCoin" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#6ee7b7" />
+                                    <stop offset="100%" stop-color="#10b981" />
+                                </linearGradient>
+                                <linearGradient id="navWallet" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#34d399" />
+                                    <stop offset="100%" stop-color="#059669" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="27" cy="22" r="11" fill="url(#navCoin)" />
+                            <path d="M27 16v12M24.5 19.5c0-1.4 1.1-2.2 2.5-2.2 1.5 0 2.6.8 2.6 2 0 2.2-5.1 1.7-5.1 4.2 0 1.3 1.1 2.2 2.6 2.2 1.5 0 2.6-.9 2.6-2.2" stroke="#064e3b" stroke-width="1.8" stroke-linecap="round" />
+                            <path d="M46 11l1.5 3.5L51 16l-3.5 1.5L46 21l-1.5-3.5L41 16l3.5-1.5L46 11z" fill="#f59e0b" />
+                            <rect x="12" y="25" width="40" height="27" rx="6" fill="url(#navWallet)" />
+                            <path d="M34 32h15a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H34a4 4 0 0 1-4-4v-6a4 4 0 0 1 4-4z" fill="#064e3b" />
+                            <circle cx="37" cy="39" r="2.2" fill="#fef08a" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">PreGastos</span>
+                            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                Finanzas Personales
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 hidden sm:block">Control de presupuesto diario y flujo de caja</p>
+                    </div>
+                </div>
+
+                <!-- Privacy & Local Badge -->
+                <div class="flex items-center gap-2">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/80">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="hidden xs:inline">100% Local & Privado</span>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Summary Cards -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        <!-- Summary Cards Section -->
         <section class="mb-8">
-            <h2 class="text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                <span>📊</span> Resumen Financiero
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                        </svg>
+                    </span>
+                    <h2 class="text-base sm:text-lg font-semibold text-slate-900 tracking-tight">Resumen Financiero</h2>
+                </div>
+                <span class="text-xs text-slate-500">Actualizado al instante</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
                 <!-- Ingresos Totales -->
-                <div class="bg-white rounded-xl shadow-lg p-6 card-hover border-l-4 border-green-500">
+                <div class="card-surface rounded-2xl p-5 sm:p-6 relative overflow-hidden border-t-2 border-t-emerald-500">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-slate-600 uppercase tracking-wide">Ingresos Totales</p>
-                            <p id="totalIncome" class="text-2xl sm:text-3xl font-bold text-green-600 mt-2">$0.00</p>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Ingresos Totales</span>
+                            <p id="totalIncome" class="text-2xl sm:text-3xl font-bold text-emerald-600 mt-2 tracking-tight tabular-numbers">$0.00</p>
                         </div>
-                        <div class="bg-green-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center flex-shrink-0">
+                            <!-- Trending Up Arrow -->
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.318 4.318L20.25 7.5M20.25 7.5H15m5.25 0v5.25" />
                             </svg>
                         </div>
+                    </div>
+                    <div class="mt-3 flex items-center text-xs text-emerald-700/80 font-medium">
+                        <span>Entradas registradas en el período</span>
                     </div>
                 </div>
 
                 <!-- Gastos Totales -->
-                <div class="bg-white rounded-xl shadow-lg p-6 card-hover border-l-4 border-red-500">
+                <div class="card-surface rounded-2xl p-5 sm:p-6 relative overflow-hidden border-t-2 border-t-rose-500">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-slate-600 uppercase tracking-wide">Gastos Totales</p>
-                            <p id="totalExpense" class="text-2xl sm:text-3xl font-bold text-red-600 mt-2">$0.00</p>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Gastos Totales</span>
+                            <p id="totalExpense" class="text-2xl sm:text-3xl font-bold text-rose-600 mt-2 tracking-tight tabular-numbers">$0.00</p>
                         </div>
-                        <div class="bg-red-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                        <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center flex-shrink-0">
+                            <!-- Trending Down Arrow -->
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6L9 12.75l4.286-4.286L20.25 16.5M20.25 16.5H15m5.25 0v-5.25" />
                             </svg>
                         </div>
+                    </div>
+                    <div class="mt-3 flex items-center text-xs text-rose-700/80 font-medium">
+                        <span>Salidas y pagos acumulados</span>
                     </div>
                 </div>
 
                 <!-- Balance Restante -->
-                <div class="bg-white rounded-xl shadow-lg p-6 card-hover border-l-4 border-blue-500">
+                <div class="card-surface rounded-2xl p-5 sm:p-6 relative overflow-hidden border-t-2 border-t-slate-800">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-slate-600 uppercase tracking-wide">Balance Restante</p>
-                            <p id="totalBalance" class="text-2xl sm:text-3xl font-bold text-blue-600 mt-2">$0.00</p>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Balance Restante</span>
+                            <p id="totalBalance" class="text-2xl sm:text-3xl font-bold text-slate-900 mt-2 tracking-tight tabular-numbers">$0.00</p>
                         </div>
-                        <div class="bg-blue-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                        <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center flex-shrink-0">
+                            <!-- Wallet / Scale Icon -->
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />
                             </svg>
                         </div>
+                    </div>
+                    <div class="mt-3 flex items-center text-xs text-slate-500 font-medium">
+                        <span>Disponible real (Ingresos - Gastos)</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Main Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            <!-- Left Column: Form and Transactions -->
+        <!-- Main Workspace Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+            <!-- Left Column: Form and Transactions (2 Cols) -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- Add Transaction Form -->
-                <section class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
-                        <h2 class="text-xl font-semibold text-white flex items-center gap-2">
-                            <span>➕</span> Agregar Nueva Transacción
-                        </h2>
+                <section class="card-surface rounded-2xl overflow-hidden shadow-sm">
+                    <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                            </span>
+                            <h2 class="text-sm sm:text-base font-semibold text-white tracking-wide">
+                                Agregar Nueva Transacción
+                            </h2>
+                        </div>
+                        <span class="text-xs text-slate-400 hidden sm:inline">Campos con * son obligatorios</span>
                     </div>
-                    <form id="transactionForm" class="p-6 space-y-4">
+
+                    <form id="transactionForm" class="p-6 space-y-5">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <!-- Título -->
                             <div class="sm:col-span-2">
-                                <label for="title" class="block text-sm font-medium text-slate-700 mb-2">
-                                    Título *
+                                <label for="title" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                                    Título / Concepto *
                                 </label>
                                 <input 
                                     type="text" 
                                     id="title" 
                                     name="title"
                                     required
-                                    placeholder="Ej: Compra en supermercado"
-                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    placeholder="Ej: Compra supermercado, Pago sueldo, etc."
+                                    class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 text-sm placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 transition-all shadow-sm"
                                 >
                             </div>
 
                             <!-- Monto -->
                             <div>
-                                <label for="amount" class="block text-sm font-medium text-slate-700 mb-2">
+                                <label for="amount" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
                                     Monto *
                                 </label>
                                 <div class="relative">
-                                    <span class="absolute left-3 top-2 text-slate-500">$</span>
+                                    <span class="absolute left-3.5 top-2.5 text-slate-400 font-medium">$</span>
                                     <input 
                                         type="number" 
                                         id="amount" 
@@ -183,40 +286,40 @@
                                         min="0.01"
                                         required
                                         placeholder="0.00"
-                                        class="w-full pl-8 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        class="w-full pl-8 pr-3.5 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 text-sm placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 transition-all shadow-sm tabular-numbers"
                                     >
                                 </div>
                             </div>
 
                             <!-- Tipo -->
                             <div>
-                                <label for="type" class="block text-sm font-medium text-slate-700 mb-2">
-                                    Tipo *
+                                <label for="type" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                                    Tipo de Movimiento *
                                 </label>
                                 <select 
                                     id="type" 
                                     name="type"
                                     required
-                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 transition-all shadow-sm"
                                 >
-                                    <option value="">Seleccionar...</option>
-                                    <option value="income">💚 Ingreso</option>
-                                    <option value="expense">❤️ Gasto</option>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="income">💚 Ingreso (+)</option>
+                                    <option value="expense">❤️ Gasto (-)</option>
                                 </select>
                             </div>
 
                             <!-- Categoría -->
                             <div>
-                                <label for="category" class="block text-sm font-medium text-slate-700 mb-2">
+                                <label for="category" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
                                     Categoría *
                                 </label>
                                 <select 
                                     id="category" 
                                     name="category"
                                     required
-                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 transition-all shadow-sm"
                                 >
-                                    <option value="">Seleccionar...</option>
+                                    <option value="">Seleccionar categoría...</option>
                                     <option value="Comida">🍔 Comida</option>
                                     <option value="Transporte">🚗 Transporte</option>
                                     <option value="Ocio">🎮 Ocio</option>
@@ -231,7 +334,7 @@
 
                             <!-- Fecha -->
                             <div>
-                                <label for="date" class="block text-sm font-medium text-slate-700 mb-2">
+                                <label for="date" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
                                     Fecha *
                                 </label>
                                 <input 
@@ -239,79 +342,109 @@
                                     id="date" 
                                     name="date"
                                     required
-                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 transition-all shadow-sm"
                                 >
                             </div>
                         </div>
 
                         <button 
                             type="submit"
-                            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                            class="w-full bg-slate-900 hover:bg-emerald-600 active:scale-[0.99] text-white py-3 px-6 rounded-xl font-medium shadow-sm hover:shadow-md hover:shadow-emerald-600/20 focus:outline-none focus:ring-4 focus:ring-emerald-500/30 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                         >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
                             </svg>
-                            Agregar Transacción
+                            <span>Guardar Transacción</span>
                         </button>
                     </form>
                 </section>
 
                 <!-- Transactions List -->
-                <section class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="bg-gradient-to-r from-slate-700 to-slate-800 px-6 py-4">
-                        <h2 class="text-xl font-semibold text-white flex items-center gap-2">
-                            <span>📝</span> Movimientos Recientes
-                        </h2>
+                <section class="card-surface rounded-2xl overflow-hidden shadow-sm">
+                    <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                </svg>
+                            </span>
+                            <h2 class="text-sm sm:text-base font-semibold text-white tracking-wide">
+                                Movimientos Recientes
+                            </h2>
+                        </div>
+                        <span class="text-xs text-slate-400">Ordenado por fecha</span>
                     </div>
-                    <div class="p-6">
+
+                    <div class="p-4 sm:p-6">
                         <!-- Desktop Table -->
-                        <div class="hidden md:block table-container">
-                            <table class="w-full">
-                                <thead class="bg-slate-50 sticky top-0">
+                        <div class="hidden md:block table-container rounded-xl border border-slate-200">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Fecha</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Título</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Categoría</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Tipo</th>
-                                        <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Monto</th>
-                                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Acciones</th>
+                                        <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
+                                        <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Título</th>
+                                        <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoría</th>
+                                        <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tipo</th>
+                                        <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Monto</th>
+                                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Acción</th>
                                     </tr>
                                 </thead>
-                                <tbody id="transactionsTableBody" class="divide-y divide-slate-200">
-                                    <!-- Transactions will be added dynamically -->
+                                <tbody id="transactionsTableBody" class="divide-y divide-slate-100 bg-white">
+                                    <!-- Dynamic rows -->
                                 </tbody>
                             </table>
                         </div>
                         
-                        <!-- Mobile Cards -->
+                        <!-- Mobile Cards List -->
                         <div id="transactionsMobileList" class="md:hidden space-y-3">
-                            <!-- Mobile cards will be added dynamically -->
+                            <!-- Dynamic cards -->
                         </div>
                         
                         <!-- Empty State -->
-                        <div id="emptyState" class="text-center py-12">
-                            <div class="text-6xl mb-4">📭</div>
-                            <p class="text-slate-500 text-lg font-medium">No hay transacciones aún</p>
-                            <p class="text-slate-400 text-sm mt-1">Agrega tu primera transacción usando el formulario</p>
+                        <div id="emptyState" class="text-center py-12 px-4">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                </svg>
+                            </div>
+                            <p class="text-slate-800 text-base font-semibold">Sin transacciones registradas</p>
+                            <p class="text-slate-400 text-sm mt-1 max-w-sm mx-auto">Agrega tus ingresos o gastos con el formulario superior para comenzar tu seguimiento financiero.</p>
                         </div>
                     </div>
                 </section>
             </div>
 
-            <!-- Right Column: Chart -->
+            <!-- Right Column: Chart (1 Col) -->
             <div class="lg:col-span-1">
-                <section class="bg-white rounded-xl shadow-lg overflow-hidden sticky top-8">
-                    <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
-                        <h2 class="text-xl font-semibold text-white flex items-center gap-2">
-                            <span>🍩</span> Gastos por Categoría
-                        </h2>
+                <section class="card-surface rounded-2xl overflow-hidden shadow-sm sticky top-20">
+                    <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                                </svg>
+                            </span>
+                            <h2 class="text-sm sm:text-base font-semibold text-white tracking-wide">
+                                Gastos por Categoría
+                            </h2>
+                        </div>
                     </div>
+                    
                     <div class="p-6">
-                        <canvas id="categoryChart" class="max-h-80"></canvas>
-                        <div id="chartEmptyState" class="text-center py-8">
-                            <div class="text-4xl mb-3">📊</div>
-                            <p class="text-slate-500 text-sm font-medium">Sin gastos registrados</p>
-                            <p class="text-slate-400 text-xs mt-1">Agrega gastos para ver el gráfico</p>
+                        <div class="relative flex items-center justify-center">
+                            <canvas id="categoryChart" class="max-h-80"></canvas>
+                        </div>
+                        
+                        <div id="chartEmptyState" class="text-center py-10 px-4">
+                            <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                                </svg>
+                            </div>
+                            <p class="text-slate-800 text-sm font-semibold">Sin gastos para graficar</p>
+                            <p class="text-slate-400 text-xs mt-1">Registra gastos para visualizar la distribución porcentual por categoría.</p>
                         </div>
                     </div>
                 </section>
@@ -320,11 +453,19 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 mt-12">
+    <footer class="bg-white border-t border-slate-200/80 mt-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <p class="text-center text-slate-500 text-sm">
-                💡 Datos guardados localmente en tu navegador • Sin conexión a servidores
-            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>Tus datos se guardan exclusivamente en tu navegador (<code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">localStorage</code>)</span>
+                </div>
+                <div class="flex items-center gap-4 text-slate-400">
+                    <span>Sin conexión a servidores</span>
+                    <span>•</span>
+                    <span>100% Privado</span>
+                </div>
+            </div>
         </div>
     </footer>
 
@@ -335,17 +476,17 @@
         // Chart instance
         let categoryChart = null;
         
-        // Categories with colors for chart
+        // Categories with refined harmonious colors for chart
         const categoryColors = {
-            'Comida': '#f59e0b',
-            'Transporte': '#3b82f6',
-            'Ocio': '#ec4899',
-            'Salud': '#10b981',
-            'Vivienda': '#8b5cf6',
-            'Servicios': '#f97316',
-            'Educación': '#06b6d4',
-            'Ropa': '#84cc16',
-            'Otros': '#64748b'
+            'Comida': '#f59e0b',     // Amber
+            'Transporte': '#0ea5e9', // Sky
+            'Ocio': '#ec4899',       // Pink
+            'Salud': '#10b981',      // Emerald
+            'Vivienda': '#6366f1',   // Indigo
+            'Servicios': '#f97316',  // Orange
+            'Educación': '#14b8a6',  // Teal
+            'Ropa': '#84cc16',       // Lime
+            'Otros': '#64748b'       // Slate
         };
         
         // Load transactions from localStorage
@@ -411,13 +552,13 @@
             const balanceElement = document.getElementById('totalBalance');
             balanceElement.textContent = formatCurrency(totalBalance);
             
-            // Change color based on balance
+            // Refined color indicator based on balance
             if (totalBalance >= 0) {
-                balanceElement.classList.remove('text-red-600');
-                balanceElement.classList.add('text-blue-600');
+                balanceElement.classList.remove('text-rose-600', 'text-red-600');
+                balanceElement.classList.add('text-emerald-600');
             } else {
-                balanceElement.classList.remove('text-blue-600');
-                balanceElement.classList.add('text-red-600');
+                balanceElement.classList.remove('text-emerald-600', 'text-blue-600');
+                balanceElement.classList.add('text-rose-600');
             }
         }
         
@@ -449,33 +590,35 @@
                 
                 // Desktop table row
                 const tableRow = document.createElement('tr');
-                tableRow.className = 'hover:bg-slate-50 transition-colors fade-in';
+                tableRow.className = 'hover:bg-slate-50/80 transition-colors fade-in border-b border-slate-100 last:border-b-0';
                 tableRow.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-slate-600">${formatDate(transaction.date)}</td>
-                    <td class="px-4 py-3">
-                        <div class="text-sm font-medium text-slate-900">${escapeHtml(transaction.title)}</div>
+                    <td class="px-4 py-3.5 text-xs text-slate-500 whitespace-nowrap">${formatDate(transaction.date)}</td>
+                    <td class="px-4 py-3.5">
+                        <div class="text-sm font-semibold text-slate-800">${escapeHtml(transaction.title)}</div>
                     </td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                    <td class="px-4 py-3.5">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/60">
                             ${escapeHtml(transaction.category)}
                         </span>
                     </td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isIncome ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                            ${isIncome ? '💚 Ingreso' : '❤️ Gasto'}
+                    <td class="px-4 py-3.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${isIncome ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-rose-50 text-rose-700 border border-rose-200/60'}">
+                            <span class="w-1.5 h-1.5 rounded-full ${isIncome ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
+                            ${isIncome ? 'Ingreso' : 'Gasto'}
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-sm font-semibold text-right ${isIncome ? 'text-green-600' : 'text-red-600'}">
+                    <td class="px-4 py-3.5 text-sm font-bold text-right tabular-numbers ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">
                         ${isIncome ? '+' : '-'}${formatCurrency(amount)}
                     </td>
-                    <td class="px-4 py-3 text-center">
+                    <td class="px-4 py-3.5 text-center">
                         <button 
                             onclick="deleteTransaction('${transaction.id}')"
-                            class="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                            class="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition-colors border border-transparent hover:border-rose-100"
                             title="Eliminar transacción"
+                            aria-label="Eliminar transacción"
                         >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                         </button>
                     </td>
@@ -484,33 +627,35 @@
                 
                 // Mobile card
                 const mobileCard = document.createElement('div');
-                mobileCard.className = 'border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow fade-in';
+                mobileCard.className = 'bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow fade-in space-y-3';
                 mobileCard.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="flex-1">
-                            <h3 class="font-medium text-slate-900">${escapeHtml(transaction.title)}</h3>
-                            <p class="text-xs text-slate-500 mt-1">${formatDate(transaction.date)}</p>
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-2">
+                            <h3 class="font-semibold text-slate-800 text-sm">${escapeHtml(transaction.title)}</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">${formatDate(transaction.date)}</p>
                         </div>
                         <button 
                             onclick="deleteTransaction('${transaction.id}')"
-                            class="text-red-600 hover:text-red-800 p-1"
+                            class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
                             title="Eliminar"
+                            aria-label="Eliminar transacción"
                         >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                         </button>
                     </div>
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
                         <div class="flex items-center gap-2">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700">
                                 ${escapeHtml(transaction.category)}
                             </span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isIncome ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                ${isIncome ? '💚' : '❤️'}
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
+                                <span class="w-1.5 h-1.5 rounded-full ${isIncome ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
+                                ${isIncome ? 'Ingreso' : 'Gasto'}
                             </span>
                         </div>
-                        <span class="text-lg font-semibold ${isIncome ? 'text-green-600' : 'text-red-600'}">
+                        <span class="text-sm font-bold tabular-numbers ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">
                             ${isIncome ? '+' : '-'}${formatCurrency(amount)}
                         </span>
                     </div>
@@ -559,7 +704,7 @@
                 categoryChart.destroy();
             }
             
-            // Create new chart
+            // Create new chart with modern donut styling
             categoryChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -568,29 +713,49 @@
                         data: data,
                         backgroundColor: colors,
                         borderWidth: 2,
-                        borderColor: '#ffffff'
+                        borderColor: '#ffffff',
+                        hoverOffset: 6
                     }]
                 },
                 options: {
                     responsive: true,
+                    cutout: '68%',
                     plugins: {
                         legend: {
                             position: 'bottom',
                             labels: {
-                                padding: 15,
+                                padding: 14,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
                                 font: {
-                                    size: 11
-                                }
+                                    family: 'Inter',
+                                    size: 11,
+                                    weight: '500'
+                                },
+                                color: '#475569'
                             }
                         },
                         tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: {
+                                family: 'Inter',
+                                size: 12,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Inter',
+                                size: 12
+                            },
+                            padding: 10,
+                            cornerRadius: 8,
+                            boxPadding: 4,
                             callbacks: {
                                 label: function(context) {
                                     const label = context.label || '';
                                     const value = context.parsed || 0;
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const percentage = ((value / total) * 100).toFixed(1);
-                                    return `${label}: ${formatCurrency(value)} (${percentage}%)`;
+                                    return ` ${label}: ${formatCurrency(value)} (${percentage}%)`;
                                 }
                             }
                         }
@@ -656,19 +821,19 @@
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = `
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
                 </svg>
-                ¡Agregado!
+                <span>¡Transacción Guardada!</span>
             `;
             submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-75');
+            submitBtn.classList.add('bg-emerald-700');
             
             setTimeout(() => {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-75');
-            }, 1500);
+                submitBtn.classList.remove('bg-emerald-700');
+            }, 1400);
         }
         
         // Delete transaction
